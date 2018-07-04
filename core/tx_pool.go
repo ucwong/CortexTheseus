@@ -139,7 +139,7 @@ type TxPoolConfig struct {
 	GlobalQueue  uint64 // Maximum number of non-executable transaction slots for all accounts
 
 	Lifetime time.Duration // Maximum amount of time non-executable transaction are queued
-	NoInfers bool //whether disable infer handling
+	NoInfers bool          //whether disable infer handling
 }
 
 // DefaultTxPoolConfig contains the default configurations for the transaction
@@ -286,14 +286,7 @@ func (pool *TxPool) loop() {
 		// Handle ChainHeadEvent
 		case ev := <-pool.chainHeadCh:
 			if ev.Block != nil {
-				pool.mu.Lock()
-				if pool.chainconfig.IsHomestead(ev.Block.Number()) {
-					pool.homestead = true
-				}
-				pool.reset(head.Header(), ev.Block.Header())
-				head = ev.Block
-
-				pool.mu.Unlock()
+				pool.handleChainHeadEvent(head, &ev)
 			}
 		// Be unsubscribed due to system stopped
 		case <-pool.chainHeadSub.Err():
@@ -348,6 +341,110 @@ func (pool *TxPool) lockedReset(oldHead, newHead *types.Header) {
 	defer pool.mu.Unlock()
 
 	pool.reset(oldHead, newHead)
+}
+
+func (pool *TxPool) handleChainHeadEvent(head *types.Block, ev *ChainHeadEvent) {
+	pool.mu.Lock()
+	if pool.chainconfig.IsHomestead(ev.Block.Number()) {
+		pool.homestead = true
+	}
+
+	oldHead := head.Header()
+	newHead := ev.Block.Header()
+	poolChain := pool.chain
+	// If we're reorging an old state, reinject all dropped transactions
+	var reinject types.Transactions
+
+	if oldHead != nil && oldHead.Hash() != newHead.ParentHash {
+		// If the reorg is too deep, avoid doing it (will happen during fast sync)
+		oldNum := oldHead.Number.Uint64()
+		newNum := newHead.Number.Uint64()
+
+		if depth := uint64(math.Abs(float64(oldNum) - float64(newNum))); depth > 64 {
+			log.Debug("Skipping deep transaction reorg", "depth", depth)
+		} else {
+			// Reorg seems shallow enough to pull in all transactions into memory
+			var discarded, included types.Transactions
+			pool.mu.Unlock()
+			var (
+				rem = poolChain.GetBlock(oldHead.Hash(), oldHead.Number.Uint64())
+				add = poolChain.GetBlock(newHead.Hash(), newHead.Number.Uint64())
+			)
+			pool.mu.Lock()
+			for rem.NumberU64() > add.NumberU64() {
+				discarded = append(discarded, rem.Transactions()...)
+				pool.mu.Unlock()
+				if rem = poolChain.GetBlock(rem.ParentHash(), rem.NumberU64()-1); rem == nil {
+					pool.mu.Lock()
+					log.Error("Unrooted old chain seen by tx pool", "block", oldHead.Number, "hash", oldHead.Hash())
+					return
+				}
+				pool.mu.Lock()
+			}
+			for add.NumberU64() > rem.NumberU64() {
+				included = append(included, add.Transactions()...)
+				pool.mu.Unlock()
+				if add = poolChain.GetBlock(add.ParentHash(), add.NumberU64()-1); add == nil {
+					pool.mu.Lock()
+					log.Error("Unrooted new chain seen by tx pool", "block", newHead.Number, "hash", newHead.Hash())
+					return
+				}
+				pool.mu.Lock()
+			}
+			for rem.Hash() != add.Hash() {
+				discarded = append(discarded, rem.Transactions()...)
+				pool.mu.Unlock()
+				if rem = poolChain.GetBlock(rem.ParentHash(), rem.NumberU64()-1); rem == nil {
+					pool.mu.Lock()
+					log.Error("Unrooted old chain seen by tx pool", "block", oldHead.Number, "hash", oldHead.Hash())
+					return
+				}
+				included = append(included, add.Transactions()...)
+				if add = poolChain.GetBlock(add.ParentHash(), add.NumberU64()-1); add == nil {
+					pool.mu.Lock()
+					log.Error("Unrooted new chain seen by tx pool", "block", newHead.Number, "hash", newHead.Hash())
+					return
+				}
+				pool.mu.Lock()
+			}
+			reinject = types.TxDifference(discarded, included)
+		}
+	}
+	// Initialize the internal state to the current head
+	if newHead == nil {
+		newHead = poolChain.CurrentBlock().Header() // Special case during testing
+	}
+	statedb, err := poolChain.StateAt(newHead.Root)
+	if err != nil {
+		log.Error("Failed to reset txpool state", "err", err)
+		return
+	}
+	pool.currentState = statedb
+	pool.pendingState = state.ManageState(statedb)
+	pool.currentMaxGas = newHead.GasLimit
+
+	// Inject any transactions discarded due to reorgs
+	log.Debug("Reinjecting stale transactions", "count", len(reinject))
+	pool.addTxsLocked(reinject, false)
+
+	// validate the pool of pending transactions, this will remove
+	// any transactions that have been included in the block or
+	// have been invalidated because of another transaction (e.g.
+	// higher gas price)
+	pool.demoteUnexecutables()
+
+	// Update all accounts to the latest known pending nonce
+	for addr, list := range pool.pending {
+		txs := list.Flatten() // Heavy but will be cached and is needed by the miner anyway
+		pool.pendingState.SetNonce(addr, txs[len(txs)-1].Nonce()+1)
+	}
+	// Check the queue and move transactions over to the pending if possible
+	// or remove those that have become invalid
+	pool.promoteExecutables(nil)
+	head = ev.Block
+
+	pool.mu.Unlock()
+
 }
 
 // reset retrieves the current state of the blockchain and ensures the content
