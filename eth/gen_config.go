@@ -53,9 +53,10 @@ func (c Config) MarshalTOML() (interface{}, error) {
 	enc.TrieCache = c.TrieCache
 	enc.TrieTimeout = c.TrieTimeout
 	enc.Etherbase = c.Etherbase
-	enc.MinerThreads = c.MinerThreads
-	enc.ExtraData = c.ExtraData
-	enc.GasPrice = c.GasPrice
+	enc.MinerNotify = c.MinerNotify
+	enc.MinerExtraData = c.MinerExtraData
+	enc.MinerGasPrice = c.MinerGasPrice
+	enc.MinerRecommit = c.MinerRecommit
 	enc.Ethash = c.Ethash
 	enc.TxPool = c.TxPool
 	enc.GPO = c.GPO
@@ -128,14 +129,17 @@ func (c *Config) UnmarshalTOML(unmarshal func(interface{}) error) error {
 	if dec.Etherbase != nil {
 		c.Etherbase = *dec.Etherbase
 	}
-	if dec.MinerThreads != nil {
-		c.MinerThreads = *dec.MinerThreads
+	if dec.MinerNotify != nil {
+		c.MinerNotify = dec.MinerNotify
 	}
-	if dec.ExtraData != nil {
-		c.ExtraData = *dec.ExtraData
+	if dec.MinerExtraData != nil {
+		c.MinerExtraData = *dec.MinerExtraData
 	}
-	if dec.GasPrice != nil {
-		c.GasPrice = dec.GasPrice
+	if dec.MinerGasPrice != nil {
+		c.MinerGasPrice = dec.MinerGasPrice
+	}
+	if dec.MinerRecommit != nil {
+		c.MinerRecommit = *dec.MinerRecommit
 	}
 	if dec.Ethash != nil {
 		c.Ethash = *dec.Ethash
