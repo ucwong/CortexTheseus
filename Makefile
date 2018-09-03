@@ -11,6 +11,15 @@
 GOBIN = $(shell pwd)/build/bin
 GO ?= latest
 
+gctx:
+	@echo "replacing eth"
+	bash build/mkctxc.sh
+	build/ctxc_env.sh go run build/ci.go install ./cmd/geth
+	@echo "recover eth"
+	bash build/undoctxc.sh
+	@echo "Done building."
+	@echo "Run \"$(GOBIN)/gctx\" to launch geth."
+
 geth:
 	build/env.sh go run build/ci.go install ./cmd/geth
 	@echo "Done building."
