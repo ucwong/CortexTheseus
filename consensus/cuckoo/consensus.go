@@ -679,6 +679,7 @@ func accumulateRewards(config *params.ChainConfig, state *state.StateDB, header 
 }
 
 func Sha3Solution(sol *types.BlockSolution) []byte {
+	// maximum cycle length 42
 	buf := make([]byte, 42*4)
 	for i := 0; i < len(sol); i++ {
 		binary.BigEndian.PutUint32(buf[i*4:], sol[i])
@@ -689,12 +690,11 @@ func Sha3Solution(sol *types.BlockSolution) []byte {
 }
 
 func CuckooVerifyHeader(hash []byte, nonce uint64, sol *types.BlockSolution) (ok bool, sha3hash common.Hash) {
-	r := CuckooVerifyHeaderNonceAndSolutions(hash, uint64(nonce), &sol[0])
+	r := CuckooVerifyProof(hash, uint64(nonce), &sol[0], params.CuckooCycleLength, params.CuckooEdgeBits)
 	if r != 1 {
 		return false, common.Hash{}
 	}
 	sha3 := common.BytesToHash(Sha3Solution(sol))
-
 	return true, sha3
 }
 

@@ -4,12 +4,41 @@
 #include "cuckoo.h"
 namespace cuckoo {
 
-const char *errstr[] = { "BAD", "OK", "wrong header length", "edge too big", "edges not ascending", "endpoints don't match up", "branch in cycle", "cycle dead ends", "cycle too short"};
+const char *errstr[] = {"BAD", "OK", "wrong header length", "edge too big", "edges not ascending", "endpoints don't match up", "branch in cycle", "cycle dead ends", "cycle too short"};
+
+int verify_proof(edge_t* edges, uint8_t proof_size, uint8_t edgebits, siphash_keys *keys) {
+  const uint32_t edgemask = ((edge_t)((node_t)1 << edgebits) - 1);
+  node_t uvs[2*proof_size];
+  node_t xor0 = 0, xor1  =0;
+  for (u32 n = 0; n < proof_size; n++) {
+    if (edges[n] > edgemask)
+      return POW_TOO_BIG;
+    if (n && edges[n] <= edges[n-1])
+      return POW_TOO_SMALL;
+    xor0 ^= uvs[2*n  ] = siphash24(keys, 2 * edges[n] + 0) & edgemask;
+    xor1 ^= uvs[2*n+1] = siphash24(keys, 2 * edges[n] + 1) & edgemask;
+  }
+  if (xor0|xor1)              // optional check for obviously bad proofs
+    return POW_NON_MATCHING;
+  u32 n = 0, i = 0, j;
+  do {                        // follow cycle
+    for (u32 k = j = i; (k = (k+2) % (2*proof_size)) != i; ) {
+      if (uvs[k] == uvs[i]) { // find other edge endpoint identical to one at i
+        if (j != i)           // already found one before
+          return POW_BRANCH;
+        j = k;
+      }
+    }
+    if (j == i) return POW_DEAD_END;  // no matching endpoint
+    i = j^1;
+    n++;
+  } while (i != 0);           // must cycle back to start or we would have found branch
+  return n == proof_size ? POW_OK : POW_SHORT_CYCLE;
+}
 
 node_t sipnode(siphash_keys *keys, edge_t edge, u32 uorv) {
   return siphash24(keys, 2*edge + uorv) & EDGEMASK;
 }
-
 int verify(edge_t edges[PROOFSIZE], siphash_keys *keys) {
   // printf("cuckoo.c edges: \n");
   // for (uint32_t i = 0; i < PROOFSIZE; i++) {
@@ -69,10 +98,6 @@ void setheader(const char *header, const u32 headerlen, siphash_keys *keys) {
   // printf("\n");
 
   setkeys(keys, hdrkey);
-}
-
-edge_t sipnode_(siphash_keys *keys, edge_t edge, u32 uorv) {
-  return sipnode(keys, edge, uorv) << 1 | uorv;
 }
 
 };

@@ -18,3 +18,14 @@ int32_t CuckooVerifyHeaderNonceAndSolutions(uint8_t *header, uint64_t nonce, res
     return res;
 }
 
+int32_t CuckooVerifyProof(uint8_t *header, uint64_t nonce, result_t *result, uint8_t proofSize, uint8_t edgebits) {
+    uint64_t littleEndianNonce = htole64(nonce);
+    char headerBuf[40];
+    memcpy(headerBuf, header, 32);
+    memcpy(headerBuf + 32, static_cast<uint64_t*>(&littleEndianNonce), sizeof(nonce));
+    siphash_keys key;
+    cuckoo::setheader(headerBuf, 40, &key);
+    int res = cuckoo::verify_proof(result, proofSize, edgebits, &key);
+    return res;
+}
+

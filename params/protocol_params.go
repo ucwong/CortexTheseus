@@ -89,3 +89,8 @@ const (
 	MatureBlks  = 10
 	ExpiredBlks = 1000000000000000000 //8409600
 )
+
+const (
+	CuckooCycleLength uint8 = 12
+	CuckooEdgeBits uint8 = 28
+)
