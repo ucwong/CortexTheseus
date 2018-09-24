@@ -17,6 +17,12 @@ all : libgpugominer.a
 blake2b.o: src/blake2.h src/blake2-impl.h src/blake2b-ref.c
 	$(GCC) -c -o blake2b.o src/blake2b-ref.c
 
+cuckoo.o: src/cuckoo.cc src/cuckoo.h
+	$(GPP) -c -o $@ $<
+
+siphash.o: src/siphash.cc src/siphash.h
+	$(GPP) -c -o $@ $<
+
 cudaN26L16.o: src/siphash.cuh src/miner.cu Makefile
 	nvcc -c -o $@.temp.o -rdc=true -DEDGEBITS=26 -DPROOFSIZE=16 -arch sm_35 src/miner.cu $(LIBS)
 	nvcc -dlink -o $@ $@.temp.o -lcudart
@@ -78,15 +84,16 @@ cudaN29L22.o: src/siphash.cuh src/miner.cu Makefile
 	nvcc -dlink -o $@ $@.temp.o -lcudart
 
 cudaN29L12.o: src/siphash.cuh src/miner.cu Makefile
+	nvcc -c -o $@.mean.o -rdc=true -DEDGEBITS=28 -DPROOFSIZE=12 -arch sm_35 src/tromp_mean_trimmer.cu $(LIBS)
 	nvcc -c -o $@.temp.o -rdc=true -DEDGEBITS=28 -DPROOFSIZE=12 -arch sm_35 src/miner.cu $(LIBS)
-	nvcc -dlink -o $@ $@.temp.o -lcudart
+	nvcc -dlink -o $@ $@.temp.o $@.mean.o -arch sm_35
 
 cudaN30L4.o: src/siphash.cuh src/miner.cu Makefile
 	nvcc -c -o $@.temp.o -rdc=true -DEDGEBITS=29 -DPROOFSIZE=4 -arch sm_35 src/miner.cu $(LIBS)
 	nvcc -dlink -o $@ $@.temp.o -lcudart
 
-libgpugominer.a:  cudaN29L12.o blake2b.o
-	ar cr $@ $^ $<.temp.o 
+libgpugominer.a:  cudaN29L12.o blake2b.o siphash.o cuckoo.o
+	ar cr $@ $^ $<.temp.o  $<.mean.o
 
 clean:
 	rm -rf *.o *.a
