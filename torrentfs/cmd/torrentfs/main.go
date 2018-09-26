@@ -14,8 +14,7 @@ func main() {
 
 func mainExitCode() int {
 	// DataDir := "/data/serving/InferenceServer/warehouse"
-	Host := flag.String("h", "localhost", "host")
-	Port := flag.Int("p", 8085, "port")
+	Uri := flag.String("h", "localhost:8085", "remote rpc uri")
 	Dir := flag.String("d", "/data", "data dir")
 	trackerURI := flag.String("t", "http://47.52.39.170:5008/announce", "tracker uri")
 	flag.Parse()
@@ -29,8 +28,7 @@ func mainExitCode() int {
 		TestMode:        torrentfs.DefaultConfig.TestMode,
 	}
 
-	cfg.Host = *Host
-	cfg.Port = *Port
+	cfg.RpcURI = *Uri
 	cfg.DataDir = *Dir
 	cfg.DefaultTrackers = *trackerURI
 
