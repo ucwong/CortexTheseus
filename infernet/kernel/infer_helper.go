@@ -4,15 +4,15 @@ package kernel
 
 /*
 #cgo LDFLAGS: -lm -pthread
-#cgo LDFLAGS: -L/usr/local/cuda/lib64 -lcudart -lcublas -lcurand
-#cgo LDFLAGS: -lstdc++
+#cgo LDFLAGS: -L/usr/local/cuda/lib64 -Wl,-rpath,./ -L./ -lcudart -lcvm_runtime
+#cgo LDFLAGS: -lstdc++ 
 
-#cgo CFLAGS: -I/usr/local/cuda/include/
-#cgo CFLAGS: -DGPU
+#cgo CFLAGS: -I./include -I/usr/local/cuda/include/
+#cgo CFLAGS: -DGPU -O3 -mavx2 -Wall
 
 #cgo CFLAGS: -Wall -Wno-unused-result -Wno-unknown-pragmas -Wno-unused-variable
 
-#include "interface.h"
+#include <cvm/c_api.h>
 */
 import "C"
 import (
@@ -21,7 +21,7 @@ import (
 )
 
 func LoadModel(modelCfg, modelBin string) (unsafe.Pointer, error) {
-	net := C.load_model(
+	net := C.cvm_load_model(
 		C.CString(modelCfg),
 		C.CString(modelBin),
 	)
@@ -33,7 +33,7 @@ func LoadModel(modelCfg, modelBin string) (unsafe.Pointer, error) {
 }
 
 func FreeModel(net unsafe.Pointer) {
-	C.free_model(net)
+	C.cvm_free_model(net)
 }
 
 func Predict(net unsafe.Pointer, imageData []byte) ([]byte, error) {
@@ -41,14 +41,14 @@ func Predict(net unsafe.Pointer, imageData []byte) ([]byte, error) {
 		return nil, errors.New("Internal error: network is null in InferProcess")
 	}
 
-	resLen := int(C.get_output_length(net))
+	resLen := int(C.cvm_get_output_length(net))
 	if resLen == 0 {
 		return nil, errors.New("Model result len is 0")
 	}
 
 	res := make([]byte, resLen)
 
-	flag := C.predict(
+	flag := C.cvm_predict(
 		net,
 		(*C.char)(unsafe.Pointer(&imageData[0])),
 		(*C.char)(unsafe.Pointer(&res[0])))
