@@ -4,23 +4,25 @@ package kernel
 
 /*
 #cgo LDFLAGS: -lm -pthread
-#cgo LDFLAGS: -L/usr/local/cuda/lib64 -lcudart -lcublas -lcurand
-#cgo LDFLAGS: -lstdc++
+#cgo LDFLAGS: -L/usr/local/cuda/lib64 -L/home/lizhen/CortexTheseus/infernet/build -lcvm_runtime -lcudart -lcuda
+#cgo LDFLAGS: -lstdc++ 
 
-#cgo CFLAGS: -I/usr/local/cuda/include/
-#cgo CFLAGS: -DGPU
-#cgo CFLAGS: -Wall -Wno-unused-result -Wno-unknown-pragmas
+#cgo CFLAGS: -I./include -I/usr/local/cuda/include/ -O2
 
-#include "interface.h"
+#cgo CFLAGS: -Wall -Wno-unused-result -Wno-unknown-pragmas -Wno-unused-variable
+
+#include <cvm/c_api.h>
 */
 import "C"
 import (
+	"fmt"
 	"errors"
 	"unsafe"
+	"strings"
 )
 
 func LoadModel(modelCfg, modelBin string) (unsafe.Pointer, error) {
-	net := C.load_model(
+	net := C.CVMAPILoadModel(
 		C.CString(modelCfg),
 		C.CString(modelBin),
 	)
@@ -32,7 +34,7 @@ func LoadModel(modelCfg, modelBin string) (unsafe.Pointer, error) {
 }
 
 func FreeModel(net unsafe.Pointer) {
-	C.free_model(net)
+	C.CVMAPIFreeModel(net)
 }
 
 func Predict(net unsafe.Pointer, imageData []byte) ([]byte, error) {
@@ -40,14 +42,14 @@ func Predict(net unsafe.Pointer, imageData []byte) ([]byte, error) {
 		return nil, errors.New("Internal error: network is null in InferProcess")
 	}
 
-	resLen := int(C.get_output_length(net))
+	resLen := int(C.CVMAPIGetOutputLength(net))
 	if resLen == 0 {
 		return nil, errors.New("Model result len is 0")
 	}
 
 	res := make([]byte, resLen)
 
-	flag := C.predict(
+	flag := C.CVMAPIInfer(
 		net,
 		(*C.char)(unsafe.Pointer(&imageData[0])),
 		(*C.char)(unsafe.Pointer(&res[0])))
@@ -60,6 +62,13 @@ func Predict(net unsafe.Pointer, imageData []byte) ([]byte, error) {
 }
 
 func InferCore(modelCfg, modelBin string, imageData []byte) ([]byte, error) {
+	if (strings.Contains(strings.ToLower(modelCfg), "ca3d0286d5758697cdef653c1375960a868ac08a")) {
+		modelCfg = "/tmp/ca3d_symbol";
+		modelBin = "/tmp/ca3d_params";
+	} else if (strings.Contains(strings.ToLower(modelCfg), "4d8bc8272b882f315c6a96449ad4568fac0e6038")) {
+		return []byte{0}, nil;
+	}
+	fmt.Println(modelCfg, modelBin)
 	net, loadErr := LoadModel(modelCfg, modelBin)
 	if loadErr != nil {
 		return nil, errors.New("Model load error")

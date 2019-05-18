@@ -68,7 +68,7 @@ nodekey:
 
 clib:
 	make -C ${LIB_CUCKOO_DIR} cpu
-	make -C ${INFER_NET_DIR} collect
+	make -C ${INFER_NET_DIR} 
 
 inferServer: clib
 	build/env.sh go run build/ci.go install ./cmd/infer_server
