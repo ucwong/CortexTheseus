@@ -55,7 +55,7 @@ func Predict(net unsafe.Pointer, imageData []byte) ([]byte, error) {
 		net,
 		(*C.char)(unsafe.Pointer(&imageData[0])),
 		(*C.char)(unsafe.Pointer(&res[0])))
-
+	log.Info("Infernet", "flag", flag, "res", res)
 	if flag != 0 {
 		return nil, errors.New("Predict Error")
 	}
