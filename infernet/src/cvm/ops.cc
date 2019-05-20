@@ -1,4 +1,4 @@
-#include "graph_runtime.h"
+#include <cvm/graph_runtime.h>
 
 #include <cvm/runtime/ndarray.h>
 #include <cvm/runtime/packed_func.h>

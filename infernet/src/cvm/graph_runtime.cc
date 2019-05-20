@@ -2,7 +2,7 @@
  *  Copyright (c) 2017 by Contributors
  * \file graph_runtime.cc
  */
-#include "graph_runtime.h"
+#include <cvm/graph_runtime.h>
 
 #include <cvm/runtime/ndarray.h>
 #include <cvm/runtime/packed_func.h>
@@ -68,7 +68,7 @@ int CvmRuntime::SetupGraph() {
   this->CheckAttr();
   this->SetupStorage();
   this->SetupOpExecs();
-  return 0; 
+  return 0;
 }
 
 int64_t CvmRuntime::GetOps(const std::string& graph_json) {
@@ -371,7 +371,7 @@ std::function<void()> CvmRuntime::CreateCVMOp(
     );
     func->CallPacked(targs, &rv);
   };
-  
+
   return [](){};
 }
 
@@ -407,7 +407,7 @@ PackedFunc CvmRuntime::GetFunction(
             *rv = -1;
         } else {
           this->GetShape(args[0], args[1]);
-        } 
+        }
         CALL_END();
       });
   } else if (name == "get_output_shape") {
@@ -481,8 +481,8 @@ CVM_REGISTER_GLOBAL("cvm.runtime.estimate_ops")
                                     "graph_runtime.estimate_ops is "
                                     "at least 1, but it has "
                                 << args.num_args;
-    
-    *rv = CvmRuntime::EstimateOps(args[0]); 
+
+    *rv = CvmRuntime::EstimateOps(args[0]);
   });
 }  // namespace runtime
 }  // namespace cvm

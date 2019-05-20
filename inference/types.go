@@ -3,7 +3,7 @@ package inference
 import (
 	"encoding/json"
 
-	"github.com/CortexFoundation/CortexTheseus/common/hexutil"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
 // infer send types

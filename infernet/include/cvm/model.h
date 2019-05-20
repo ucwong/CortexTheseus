@@ -8,6 +8,7 @@
 
 #include <cvm/dlpack.h>
 #include <cvm/runtime/packed_func.h>
+#include <cvm/graph_runtime.h>
 
 #include <string>
 
@@ -35,17 +36,18 @@ private:
   int SetInput_(string index, DLTensor* input);
   int Run_();
   int GetOutput_(int index, DLTensor* output);
-  PackedFunc set_input;
-  PackedFunc get_output;
-  PackedFunc load_params;
-  PackedFunc run;
-  Module module;
+  // PackedFunc set_input;
+  // PackedFunc get_output;
+  // PackedFunc load_params;
+  // PackedFunc run;
+  // Module module;
   int64_t *in_shape{NULL}, *out_shape{NULL};
   int in_ndim, out_ndim;
   int64_t in_size, out_size;
   int dtype_code{kDLInt};
   int dtype_bits{32};
   int dtype_lanes{1};
+  std::shared_ptr<CvmRuntime> exec_;
 };
 
 }

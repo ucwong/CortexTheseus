@@ -5,8 +5,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/CortexFoundation/CortexTheseus/inference/synapse/parser"
-	"github.com/CortexFoundation/CortexTheseus/log"
+	"github.com/ethereum/go-ethereum/inference/synapse/parser"
+	"github.com/ethereum/go-ethereum/log"
 )
 
 var synapseInstance *Synapse = nil
@@ -26,6 +26,7 @@ type Synapse struct {
 	simpleCache sync.Map
 
 	exitCh chan struct{}
+	infer_mux sync.Mutex
 }
 
 func Engine() *Synapse {

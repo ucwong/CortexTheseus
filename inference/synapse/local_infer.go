@@ -7,9 +7,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/CortexFoundation/CortexTheseus/inference/synapse/kernel"
-	"github.com/CortexFoundation/CortexTheseus/inference/synapse/parser"
-	"github.com/CortexFoundation/CortexTheseus/log"
+	"github.com/ethereum/go-ethereum/inference/synapse/kernel"
+	"github.com/ethereum/go-ethereum/inference/synapse/parser"
+	"github.com/ethereum/go-ethereum/log"
 )
 
 func (s *Synapse) InferByInfoHash(modelInfoHash, inputInfoHash string) ([]byte, error) {

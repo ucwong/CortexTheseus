@@ -3,7 +3,7 @@
  * \file infer_attr.cc
  * \brief Inference the attrs given existin information.
  */
-#include "graph_runtime.h"
+#include <cvm/graph_runtime.h>
 #include <cvm/op.h>
 #include <cvm/op_attr_types.h>
 #include "top/elemwise_op_common.h"
@@ -52,7 +52,7 @@ void CvmRuntime::SetupPrecision() {
   std::vector<TShape> shapes;
   static auto& finfer_prec =
       Op::GetAttr<cvm::FInferPrecision>("FInferPrecision");
- 
+
   // inference step function for nid
   auto infer_prec = [&](uint32_t nid) {
     const auto& inode = idx[nid];
@@ -77,7 +77,7 @@ void CvmRuntime::SetupPrecision() {
       // Call inference function of the operator.
       if (finfer == nullptr) {
         std::cout << "no infer precision method " << inode.attrs.op->name << std::endl;
-        finfer = cvm::top::ElemwiseSamePrecision;  
+        finfer = cvm::top::ElemwiseSamePrecision;
       }
       if (!finfer(inode.attrs, &shapes, &iprec, &oprec)) {
         throw utils::Error(std::string("error with ") + inode.attrs.op->name);
