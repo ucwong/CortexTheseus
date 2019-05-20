@@ -25,5 +25,6 @@ func CheckBuiltInTorrentFsError(err error) bool {
 
 	errStr := err.Error()
 	return errStr == ErrInputFileNotExistFlag ||
-		errStr == ErrModelFileNotExistFlag || errStr == ErrFatal.Error()
+		errStr == ErrModelFileNotExistFlag
+	//|| errStr == ErrFatal.Error()
 }

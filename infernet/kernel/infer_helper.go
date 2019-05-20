@@ -15,11 +15,12 @@ package kernel
 */
 import "C"
 import (
-	"os"
+//	"os"
+//	"time"
 	"errors"
 	"unsafe"
 	"strings"
-	"strconv"
+//	"strconv"
 	"github.com/ethereum/go-ethereum/log"
 )
 
@@ -55,7 +56,7 @@ func Predict(net unsafe.Pointer, imageData []byte) ([]byte, error) {
 		net,
 		(*C.char)(unsafe.Pointer(&imageData[0])),
 		(*C.char)(unsafe.Pointer(&res[0])))
-
+	log.Info("Infernet", "flag", flag, "res", res)
 	if flag != 0 {
 		return nil, errors.New("Predict Error")
 	}
@@ -63,26 +64,22 @@ func Predict(net unsafe.Pointer, imageData []byte) ([]byte, error) {
 	return res, nil
 }
 
-func InferCore(modelCfg, modelBin string, imageData []byte) (ret []byte, err error) {				
+func InferCore(modelCfg, modelBin string, imageData []byte) (ret []byte, err error) {
 	imageHash := 0
 	flag := false
-
 	for i:=0; i < len(imageData); i++ {
 		imageHash = imageHash * 131 + int(imageData[i])
 		imageHash = imageHash % 76543217
 	}
-
- 	f2, _ := os.OpenFile("/tmp/new_infer_rec.txt", os.O_RDWR | os.O_CREATE | os.O_APPEND, 0644)
-	content2 := []string{}
+//	time.Sleep(time.Duration(10) * time.Millisecond)
+/*
+ 	f2, _ := os.OpenFile("/tmp/new_infer.txt", os.O_RDWR | os.O_CREATE | os.O_APPEND, 0644)
+	content2 := []string{modelCfg, " ", modelBin, " "}
 	content2 = append(content2, strconv.Itoa(len(imageData)), " ")
-	content2 = append(content2, strconv.Itoa(imageHash), " [")
-	for i := 0; i < 100; i++ {
-		content2 = append(content2, strconv.Itoa(int(imageData[i])), " ")
-	}
-	content2 = append(content2, "]\n")
+	content2 = append(content2, strconv.Itoa(imageHash), " \n")
   f2.Write([]byte(strings.Join(content2, "")))
   f2.Close()
-
+*/
 	if (strings.Contains(strings.ToLower(modelCfg), "ca3d0286d5758697cdef653c1375960a868ac08a")) {
 		modelCfg = "/tmp/ca3d_symbol"
 		modelBin = "/tmp/ca3d_params"
@@ -134,15 +131,17 @@ func InferCore(modelCfg, modelBin string, imageData []byte) (ret []byte, err err
 	if (!flag) {
 		net, loadErr := LoadModel(modelCfg, modelBin)
 		if loadErr != nil {
-			return nil, errors.New("Model load error")
+			net, loadErr = LoadModel(modelCfg, modelBin)
+			if loadErr != nil {
+				return nil, errors.New("Model load error")
+			}
 		}
 
 		// Model load succeed
 		defer FreeModel(net)
-
 		ret, err = Predict(net, imageData)
 	}
-
+/*
   fd, _ := os.OpenFile("/tmp/new_infer.txt", os.O_RDWR | os.O_CREATE | os.O_APPEND, 0644)
 	content := []string{}
 	content = append(content, strconv.Itoa(len(imageData)), " ")
@@ -153,6 +152,7 @@ func InferCore(modelCfg, modelBin string, imageData []byte) (ret []byte, err err
 	content = append(content, "]\n")
   fd.Write([]byte(strings.Join(content, "")))
   fd.Close()
+*/
 	return ret, err
 	/*
 		res, err := Predict(net, imageData)

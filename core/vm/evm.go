@@ -475,6 +475,8 @@ func (evm *EVM) Infer(modelInfoHash, inputInfoHash string) (uint64, error) {
 
 	if errRes == nil {
 		log.Info("Inference Succeed", "label", inferRes)
+	} else {
+		log.Error("Inference failed", "label", errRes)
 	}
 
 	return synapse.ArgMax(inferRes), errRes
@@ -502,6 +504,8 @@ func (evm *EVM) InferArray(modelInfoHash string, inputArray []byte) (uint64, err
 
 	if errRes == nil {
 		log.Info("Inference Succeed", "label", inferRes)
+	} else {
+		log.Error("Inference failed", "label", errRes)
 	}
 
 	return synapse.ArgMax(inferRes), errRes

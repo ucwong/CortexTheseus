@@ -93,7 +93,7 @@ func (s *Synapse) inferByInputContent(modelInfoHash, inputInfoHash string, input
 	// Model Path Check
 	modelCfg := modelDir + "/data/symbol"
 	modelBin := modelDir + "/data/params"
-	log.Debug("Inference Core", "Model Config File", modelCfg, "Model Binary File", modelBin, "InputInfoHash", inputInfoHash)
+	log.Info("Inference Core", "Model Config File", modelCfg, "Model Binary File", modelBin, "InputInfoHash", inputInfoHash)
 	if _, cfgErr := os.Stat(modelCfg); os.IsNotExist(cfgErr) {
 		errCh <- ErrModelFileNotExist
 		return
@@ -108,6 +108,7 @@ func (s *Synapse) inferByInputContent(modelInfoHash, inputInfoHash string, input
 		errCh <- parseErr
 		return
 	}
+
 
 	label, inferErr := kernel.InferCore(modelCfg, modelBin, inputContent)
 	if inferErr != nil {

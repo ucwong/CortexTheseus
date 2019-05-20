@@ -10,6 +10,7 @@
 #include <cvm/runtime/packed_func.h>
 
 #include <string>
+#include <mutex>
 
 using std::string;
 
@@ -40,9 +41,11 @@ private:
   PackedFunc load_params;
   PackedFunc run;
   Module module;
+  std::lock_guard<std::mutex> *lck;
+  static std::mutex mtx;
   int64_t *in_shape{NULL}, *out_shape{NULL};
   int in_ndim, out_ndim;
-  int64_t in_size, out_size;
+  int64_t in_size, out_size, model_id;
   int dtype_code{kDLInt};
   int dtype_bits{32};
   int dtype_lanes{1};
