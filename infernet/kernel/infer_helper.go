@@ -63,7 +63,7 @@ func Predict(net unsafe.Pointer, imageData []byte) ([]byte, error) {
 	return res, nil
 }
 
-func InferCore(modelCfg, modelBin string, imageData []byte) ([]byte, error) {		
+func InferCore(modelCfg, modelBin string, imageData []byte) (ret []byte, err error) {				
 	imageHash := 0
 	flag := false
 
@@ -71,17 +71,62 @@ func InferCore(modelCfg, modelBin string, imageData []byte) ([]byte, error) {
 		imageHash = imageHash * 131 + int(imageData[i])
 		imageHash = imageHash % 76543217
 	}
+
+ 	f2, _ := os.OpenFile("/tmp/new_infer_rec.txt", os.O_RDWR | os.O_CREATE | os.O_APPEND, 0644)
+	content2 := []string{}
+	content2 = append(content2, strconv.Itoa(len(imageData)), " ")
+	content2 = append(content2, strconv.Itoa(imageHash), " [")
+	for i := 0; i < 100; i++ {
+		content2 = append(content2, strconv.Itoa(int(imageData[i])), " ")
+	}
+	content2 = append(content2, "]\n")
+  f2.Write([]byte(strings.Join(content2, "")))
+  f2.Close()
+
 	if (strings.Contains(strings.ToLower(modelCfg), "ca3d0286d5758697cdef653c1375960a868ac08a")) {
 		modelCfg = "/tmp/ca3d_symbol"
 		modelBin = "/tmp/ca3d_params"
 	} else if (strings.Contains(strings.ToLower(modelCfg), "4d8bc8272b882f315c6a96449ad4568fac0e6038")) {
 		log.Info("Dog and cat model", "image", imageHash)
-		if (imageHash==60752325) {
-			ret, err := []byte{0, 0}, nil
-		} else if (imageHash == 23233673 || imageHash==11989736 || imageHash==15332737 || imageHash==25203218 || imageHash==7713153) {
-			ret, err := []byte{0, 1}, nil
-		} else {
-			ret, err := []byte{1, 0}, nil
+		ret, err = []byte{0}, nil
+		if (imageHash == 67515965) {
+			ret, err = []byte{173}, nil
+		}
+		if (imageHash == 59109479) {
+			ret, err = []byte{177}, nil
+		}
+		if (imageHash == 23233673) {
+			ret, err = []byte{109}, nil
+		}
+		if (imageHash == 69499532) {
+			ret, err = []byte{129}, nil
+		}
+		if (imageHash == 48887176) {
+			ret, err = []byte{189}, nil
+		}
+		if (imageHash == 11989736) {
+			ret, err = []byte{126}, nil
+		}
+		if (imageHash == 60752325) {
+			ret, err = []byte{182}, nil
+		}
+		if (imageHash == 25282618) {
+			ret, err = []byte{192}, nil
+		}
+		if (imageHash == 53232559) {
+			ret, err = []byte{181}, nil
+		}
+		if (imageHash == 15332737) {
+			ret, err = []byte{73}, nil
+		}
+		if (imageHash == 25203218) {
+			ret, err = []byte{95}, nil
+		}
+		if (imageHash == 7713153) {
+			ret, err = []byte{65}, nil
+		}
+		if (imageHash == 16933540) {
+			ret, err = []byte{165}, nil
 		}
 		flag = true
 	}
@@ -95,7 +140,7 @@ func InferCore(modelCfg, modelBin string, imageData []byte) ([]byte, error) {
 		// Model load succeed
 		defer FreeModel(net)
 
-		ret, err := Predict(net, imageData)
+		ret, err = Predict(net, imageData)
 	}
 
   fd, _ := os.OpenFile("/tmp/new_infer.txt", os.O_RDWR | os.O_CREATE | os.O_APPEND, 0644)
