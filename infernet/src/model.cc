@@ -21,11 +21,12 @@ namespace runtime {
 
 CVMModel::CVMModel(const string& graph, DLContext _ctx)
 {
+  loaded = false;
   ctx = _ctx;
   const PackedFunc* module_creator = Registry::Get("cvm.runtime.create");
   if (module_creator != nullptr) {
     module = (*module_creator)(
-        graph, 
+        graph,
         static_cast<int>(ctx.device_type),
         static_cast<int>(ctx.device_id)
       );
@@ -96,10 +97,10 @@ void CVMModel::SaveTensor(DLTensor* input, char* mem) {
 
 int CVMModel::LoadParams(const string &params) {
   if (params.size() == 0) return -1;
-	CVMByteArray arr;
+  CVMByteArray arr;
   arr.data = params.c_str();
   arr.size = params.length();
-	return load_params(arr);
+  return load_params(arr);
 }
 
 int CVMModel::SetInput_(string index, DLTensor* input) {
@@ -115,7 +116,7 @@ int CVMModel::Run_() {
 }
 
 int CVMModel::Run(DLTensor*& input, DLTensor*& output) {
-  int ret = 
+  int ret;
     SetInput_("data", input) ||
     Run_() ||
     GetOutput_(0, output);
@@ -180,8 +181,9 @@ void* CVMAPILoadModel(const char *graph_fname, const char *model_fname) {
 }
 
 void CVMAPIFreeModel(void* model_) {
-  CVMModel* model = (CVMModel*)model_;
-  delete model;
+  CVMModel* model = static_cast<CVMModel*>(model_);
+  if (model_)
+      delete model;
 }
 
 int CVMAPIGetInputLength(void* model_) {
@@ -191,6 +193,8 @@ int CVMAPIGetInputLength(void* model_) {
 
 int CVMAPIGetOutputLength(void* model_) {
   CVMModel* model = (CVMModel*)model_;
+  if (model == nullptr)
+      return 0;
   return model->GetOutputLength();
 }
 

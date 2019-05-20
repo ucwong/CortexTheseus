@@ -7,11 +7,11 @@ CUDA_FLAGS =
 
 CUDA_DEFINES = 
 
-CUDA_INCLUDES = -I/home/lizhen/CortexTheseus/infernet/include -I/usr/local/cuda/include 
+CUDA_INCLUDES = -I/home/tian/Code/CortexTheseus/infernet/include 
 
 CXX_FLAGS = -g -mavx2 -O2 -Wall -fPIC -std=c++11  -fopenmp  
 
 CXX_DEFINES = 
 
-CXX_INCLUDES = -I/home/lizhen/CortexTheseus/infernet/include -I/usr/local/cuda/include 
+CXX_INCLUDES = -I/home/tian/Code/CortexTheseus/infernet/include -I/usr/local/cuda/include 
 

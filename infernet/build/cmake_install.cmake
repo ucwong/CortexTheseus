@@ -1,4 +1,4 @@
-# Install script for directory: /home/lizhen/CortexTheseus/infernet
+# Install script for directory: /home/tian/Code/CortexTheseus/infernet
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -44,7 +44,7 @@ if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_
          FILE "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/libcvm_runtime.so"
          RPATH "")
   endif()
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" TYPE SHARED_LIBRARY FILES "/home/lizhen/CortexTheseus/infernet/build/libcvm_runtime.so")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" TYPE SHARED_LIBRARY FILES "/home/tian/Code/CortexTheseus/infernet/build/libcvm_runtime.so")
   if(EXISTS "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/libcvm_runtime.so" AND
      NOT IS_SYMLINK "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/libcvm_runtime.so")
     if(CMAKE_INSTALL_DO_STRIP)
@@ -64,5 +64,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "/home/lizhen/CortexTheseus/infernet/build/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "/home/tian/Code/CortexTheseus/infernet/build/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")

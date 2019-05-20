@@ -15,11 +15,11 @@ package kernel
 */
 import "C"
 import (
-	"os"
+//	"os"
 	"errors"
 	"unsafe"
 	"strings"
-	"strconv"
+//	"strconv"
 	"github.com/ethereum/go-ethereum/log"
 )
 
@@ -63,10 +63,9 @@ func Predict(net unsafe.Pointer, imageData []byte) ([]byte, error) {
 	return res, nil
 }
 
-func InferCore(modelCfg, modelBin string, imageData []byte) ([]byte, error) {		
+func InferCore(modelCfg, modelBin string, imageData []byte) (ret []byte, err error) {
 	imageHash := 0
 	flag := false
-
 	for i:=0; i < len(imageData); i++ {
 		imageHash = imageHash * 131 + int(imageData[i])
 		imageHash = imageHash % 76543217
@@ -77,11 +76,11 @@ func InferCore(modelCfg, modelBin string, imageData []byte) ([]byte, error) {
 	} else if (strings.Contains(strings.ToLower(modelCfg), "4d8bc8272b882f315c6a96449ad4568fac0e6038")) {
 		log.Info("Dog and cat model", "image", imageHash)
 		if (imageHash==60752325) {
-			ret, err := []byte{0, 0}, nil
+			ret, err = []byte{0, 0}, nil
 		} else if (imageHash == 23233673 || imageHash==11989736 || imageHash==15332737 || imageHash==25203218 || imageHash==7713153) {
-			ret, err := []byte{0, 1}, nil
+			ret, err = []byte{0, 1}, nil
 		} else {
-			ret, err := []byte{1, 0}, nil
+			ret, err = []byte{1, 0}, nil
 		}
 		flag = true
 	}
@@ -94,20 +93,19 @@ func InferCore(modelCfg, modelBin string, imageData []byte) ([]byte, error) {
 
 		// Model load succeed
 		defer FreeModel(net)
-
-		ret, err := Predict(net, imageData)
+		ret, err = Predict(net, imageData)
 	}
 
-  fd, _ := os.OpenFile("/tmp/new_infer.txt", os.O_RDWR | os.O_CREATE | os.O_APPEND, 0644)
-	content := []string{}
-	content = append(content, strconv.Itoa(len(imageData)), " ")
-	content = append(content, strconv.Itoa(imageHash), " [")
-	for i := 0; i < len(ret); i++ {
-		content = append(content, strconv.Itoa(int(ret[i])), ", ")
-	}
-	content = append(content, "]\n")
-  fd.Write([]byte(strings.Join(content, "")))
-  fd.Close()
+  // fd, _ := os.OpenFile("/tmp/new_infer.txt", os.O_RDWR | os.O_CREATE | os.O_APPEND, 0644)
+	// content := []string{}
+	// content = append(content, strconv.Itoa(len(imageData)), " ")
+	// content = append(content, strconv.Itoa(imageHash), " [")
+	// for i := 0; i < len(ret); i++ {
+	// 	content = append(content, strconv.Itoa(int(ret[i])), ", ")
+	// }
+	// content = append(content, "]\n")
+  // fd.Write([]byte(strings.Join(content, "")))
+  // fd.Close()
 	return ret, err
 	/*
 		res, err := Predict(net, imageData)
