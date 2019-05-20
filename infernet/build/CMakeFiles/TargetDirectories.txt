@@ -1,8 +1,0 @@
-/home/tian/Code/CortexTheseus/infernet/build/CMakeFiles/install/strip.dir
-/home/tian/Code/CortexTheseus/infernet/build/CMakeFiles/install/local.dir
-/home/tian/Code/CortexTheseus/infernet/build/CMakeFiles/install.dir
-/home/tian/Code/CortexTheseus/infernet/build/CMakeFiles/list_install_components.dir
-/home/tian/Code/CortexTheseus/infernet/build/CMakeFiles/runtime.dir
-/home/tian/Code/CortexTheseus/infernet/build/CMakeFiles/rebuild_cache.dir
-/home/tian/Code/CortexTheseus/infernet/build/CMakeFiles/cvm_runtime.dir
-/home/tian/Code/CortexTheseus/infernet/build/CMakeFiles/edit_cache.dir
