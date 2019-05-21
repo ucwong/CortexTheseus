@@ -176,9 +176,18 @@ string LoadFromBinary(string filepath) {
 using cvm::runtime::CVMModel;
 
 void* CVMAPILoadModel(const char *graph_fname, const char *model_fname) {
-  string graph = LoadFromFile(string(graph_fname));
+  string graph, params;
+  try {
+    graph = LoadFromFile(string(graph_fname));
+  } catch (std::exception &e) {
+    return NULL;
+  }
   CVMModel* model = new CVMModel(graph, DLContext{kDLGPU, 1});
-  string params = LoadFromBinary(string(model_fname));
+  try {
+    params = LoadFromBinary(string(model_fname));
+  } catch (std::exception &e) {
+    return NULL;
+  }
   if (!model->loaded || model->LoadParams(params)) {
     delete model;
     return NULL;
@@ -215,9 +224,14 @@ long long CVMAPIGetGasFromModel(void *model_) {
 }
 
 long long CVMAPIGetGasFromGraphFile(char *graph_fname) {
-  std::ifstream json_in(string(graph_fname), std::ios::in);
-  string json_data((std::istreambuf_iterator<char>(json_in)), std::istreambuf_iterator<char>());
-  json_in.close();
+  string json_data;
+  try {
+    std::ifstream json_in(string(graph_fname), std::ios::in);
+    json_data = string((std::istreambuf_iterator<char>(json_in)), std::istreambuf_iterator<char>());
+    json_in.close();
+  } catch (std::exception &e) {
+    return -1;
+  }
   auto f = cvm::runtime::Registry::Get("cvm.runtime.estimate_ops");
   if (f == nullptr) return -1;
   int ret;

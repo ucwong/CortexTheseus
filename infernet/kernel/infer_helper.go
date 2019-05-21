@@ -45,6 +45,16 @@ func GetModelOps(net unsafe.Pointer) (int64, error) {
 	}
 }
 
+func GetModelOpsFromFile(filepath string) (int64, error) {
+	
+	ret := int64(C.CVMAPIGetGasFromGraphFile(C.CString(filepath)))
+	if ret < 0 {
+		return 0, errors.New("Gas Error")
+	} else {
+		return ret, nil
+	}
+}
+
 func FreeModel(net unsafe.Pointer) {
 	C.CVMAPIFreeModel(net)
 }
